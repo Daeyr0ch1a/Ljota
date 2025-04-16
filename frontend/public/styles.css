@@ -1,0 +1,93 @@
+/* === Основные стили === */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1A1F3E; 
+    height: 100vh;
+    margin: 0;
+    color: #F9A8D4; 
+}
+
+#intro {
+    text-align: center;
+    background: radial-gradient(circle at center, #3B82F6, #1A1F3E);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 30px #60A5FA;
+    max-width: 600px;
+}
+
+#intro h1 {
+    font-size: 2em;
+    margin-bottom: 0.5em;
+    color: #A78BFA; 
+}
+
+#intro p {
+    font-size: 1.2em;
+    color: #D8B4FE; 
+}
+
+/* === Модальное окно === */
+#authModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(26, 31, 62, 0.8); 
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#authModal .modal-content {
+    background: linear-gradient(to bottom right, #A78BFA, #60A5FA);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    color: #1A1F3E;
+    box-shadow: 0 0 20px #3B82F6;
+}
+
+#authForm input {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 10px auto;
+    border: none;
+    border-radius: 5px;
+}
+
+/* === Кнопки === */
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    background: linear-gradient(45deg, #4C3D78, #304D78); 
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px #A78BFA;
+}
+
+
+/* === Скрытые элементы === */
+.hidden {
+    display: none;
+}
+
+/* === Игровая сцена === */
+#gameScene {
+    text-align: center;
+    padding: 30px;
+    color: #F9A8D4;
+}

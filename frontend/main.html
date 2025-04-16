@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/public/icons/main.svg" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ljota — Раннер по галактическим мирам</title>
+    <link rel="stylesheet" href="/static/public/styles.css">
+</head>
+<body>
+    <!-- Превью заставка -->
+    <div id="intro">
+        <h1>Добро пожаловать в Ljota!</h1>
+        <p>Погрузись в галактический мир. Нажми "Начать", чтобы зарегистрироваться или войти.</p>
+        <button id="startBtn">Начать</button>
+    </div>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <h2>Регистрация / Авторизация</h2>
+            <form id="authForm">
+                <input type="text" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Пароль" required>
+                <button type="submit">Войти</button>
+                <button type="button" id="registerBtn">Зарегистрироваться</button>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="gameScene" class="hidden">
+        <h2>Игровая сцена</h2>
+
+    </div>
+    <div id="messageBox" style="display: none; margin-top: 10px;"></div>
+
+
+    <script src="/static/src/api.js"></script>
+    <script src="/static/src/game.js"></script>
+</body>
+</html>
