@@ -11,7 +11,6 @@ DB_NAME = "Ljota"
 
 DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-# Создаем движок подключения
 engine = create_engine(
     DATABASE_URL,
     connect_args={"client_encoding": "utf8"},
