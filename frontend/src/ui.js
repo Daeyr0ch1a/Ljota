@@ -1,3 +1,7 @@
+document.getElementById('closeModal').addEventListener('click', () => {
+    document.getElementById('authModal').style.display = 'none';
+});
+
 document.getElementById('startBtn').addEventListener('click', function () {
     document.getElementById('authModal').style.display = 'flex';
     document.getElementById('intro').style.display = 'none';
