@@ -6,6 +6,7 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'schema': 'public'}
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(16), unique=True, index=True, nullable=False)
@@ -15,6 +16,7 @@ class User(Base):
 
 class Hero(Base):
     __tablename__ = 'heroes'
+    __table_args__ = {'schema': 'public'}
 
     hero_id = Column(Integer, primary_key=True, index=True)
     name = Column(String(64))
@@ -26,22 +28,23 @@ class Hero(Base):
 
 class BetterResult(Base):
     __tablename__ = 'better_results'
+    __table_args__ = {'schema': 'public'}
 
     result_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey('public.users.id', ondelete="CASCADE"))
     score = Column(Integer, nullable=False)
     level_reached = Column(Integer, default=1)
     date_played = Column(TIMESTAMP, server_default=func.now())
 
 class Setting(Base):
     __tablename__ = 'settings'
-
-    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True)
-    sound_volume = Column(Integer, default=100)
-    music_volume = Column(Integer, default=100)
-    control_scheme = Column(String(32), default='default')
-
     __table_args__ = (
         CheckConstraint('sound_volume BETWEEN 0 AND 100'),
         CheckConstraint('music_volume BETWEEN 0 AND 100'),
+        {'schema': 'public'}
     )
+
+    user_id = Column(Integer, ForeignKey('public.users.id', ondelete="CASCADE"), primary_key=True)
+    sound_volume = Column(Integer, default=100)
+    music_volume = Column(Integer, default=100)
+    control_scheme = Column(String(32), default='default')
