@@ -1,5 +1,7 @@
 import { authenticateUser, registerUser } from './api.js';
 
+
+
 document.addEventListener('DOMContentLoaded', () => {
     // Обработчик кнопки "Начать" — открывает модальное окно регистрации
     const startBtn = document.getElementById('startBtn');
@@ -82,9 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
         registerForm.addEventListener('submit', function (event) {
             event.preventDefault();
 
+            const name = document.getElementById('regName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
             const password = document.getElementById('regPassword').value.trim();
+            const birthDate = document.getElementById('birthDate').value;
             const gender = document.getElementById('gender').value;
+            
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
@@ -97,14 +102,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            if (!name) {
+                showMessage('Введите имя', true);
+                return;
+            }
+
             if (!gender) {
                 showMessage('Выберите пол', true);
                 return;
             }
 
-            console.log('Перед отправкой:', { email, password, gender });
+            if (!birthDate) {
+                showMessage('Введите дату рождения', true);
+                return;
+            }
+            
+            const payload = {
+                email,
+                password,
+                name,
+                data_users: {
+                    gender,
+                    birthDate: new Date(birthDate).toISOString().split('T')[0]
+                }
+            };
+            
 
-            registerUser(email, password, gender).then(data => {
+            registerUser(payload).then(data => {
                 if (data.success) {
                     showMessage('Регистрация успешна!');
                     setTimeout(() => {
@@ -118,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
 
     function showMessage(message, isError = false) {
         const box = document.getElementById('messageBox');

@@ -1,11 +1,12 @@
-export async function registerUser(email, password, gender) {
-    // Валидация полей
-    if (!email || !password || !gender) {
-        console.log('Валидация не пройдена:', { email, password, gender });
+export async function registerUser(payload) {
+    const { email, password, name, data_users } = payload;
+
+    // Валидация
+    if (!email || !password || !name || !data_users?.gender || !data_users?.birthDate) {
+        console.log('Валидация не пройдена:', payload);
         return { success: false, error: 'Все поля должны быть заполнены' };
     }
 
-    const payload = { email, password, data_users: { gender } };
     console.log('Отправляемый запрос:', payload);
 
     try {
@@ -24,6 +25,7 @@ export async function registerUser(email, password, gender) {
         return { success: false, error: error.message };
     }
 }
+
 
 export async function authenticateUser(email, password) {
     // Валидация полей

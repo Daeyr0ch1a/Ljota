@@ -12,15 +12,17 @@
 
     <div id="intro">
         <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="25" fill="url(#planetGradient)" stroke="#A78BFA" stroke-width="1"/>
+            <circle cx="50" cy="50" r="25" fill="url(#skullGradient)" stroke="#A78BFA" stroke-width="2"/>
             <defs>
-                <radialGradient id="planetGradient" cx="50%" cy="50%" r="50%">
+                <radialGradient id="skullGradient" cx="50%" cy="50%" r="50%">
                     <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:1"/>
                     <stop offset="50%" style="stop-color:#60A5FA;stop-opacity:0.8"/>
                     <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1"/>
                 </radialGradient>
             </defs>
-            <ellipse cx="50" cy="50" rx="35" ry="10" fill="none" stroke="#D8B4FE" stroke-width="3" transform="rotate(45 50 50)"/>
+            <circle cx="40" cy="45" r="5" fill="black" stroke="#ff00ff" stroke-width="2"/>
+            <circle cx="60" cy="45" r="5" fill="black" stroke="#ff00ff" stroke-width="2"/>
+            <path d="M 35 60 Q 50 75, 65 60" stroke="#00ffff" stroke-width="2" fill="none"/>
         </svg>
         <button id="startBtn">Начать</button>
     </div>
@@ -45,8 +47,10 @@
             <span class="close" data-close="registerModal">×</span>
             <h2>Регистрация</h2>
             <form id="registerForm">
+                <input type="text" id="regName" name="name" placeholder="Имя" required />
                 <input type="text" id="regEmail" placeholder="Email" required>
                 <input type="password" id="regPassword" placeholder="Пароль" required>
+                <input type="date" id="birthDate" name="birthDate" required />
                 <select id="gender" required>
                     <option value="">Выберите пол</option>
                     <option value="male">Мужской</option>

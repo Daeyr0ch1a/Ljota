@@ -13,8 +13,15 @@ api_router = APIRouter()
 # Модели для входных данных
 class UserData(BaseModel):
     gender: str
+    birthDate: str  
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
 
 class UserIn(BaseModel):
+    name: str
     email: str
     password: str
     data_users: UserData
@@ -34,7 +41,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 # Маршрут для логина
 @api_router.post("/api/login", response_model=ResponseMessage)
-async def login(user: UserIn, db: Session = Depends(get_db)):
+async def login(user: UserLogin, db: Session = Depends(get_db)):
     from backend.database.models import User as DBUser
     db_user = db.query(DBUser).filter(DBUser.email == user.email).first()
     if db_user and verify_password(user.password, db_user.password):
@@ -63,16 +70,18 @@ async def register(user: UserIn, db: Session = Depends(get_db)):
     registration_date = datetime.utcnow().isoformat()
     data_users = {
         "gender": user.data_users.gender,
-        "registration_date": registration_date
+        "registration_date": registration_date,
+        "birthDate": user.data_users.birthDate
     }
 
     # Создаем нового пользователя
     new_user = DBUser(
-        name=None,  # Устанавливаем name как None, так как оно теперь nullable
+        name=user.name,
         email=user.email,
         password=hashed_password,
         data_users=data_users
     )
+
 
     try:
         db.add(new_user)

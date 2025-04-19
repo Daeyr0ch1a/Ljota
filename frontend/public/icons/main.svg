@@ -1,37 +1,7 @@
-<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-  <!-- Фон -->
-  <rect width="200" height="200" fill="#1A1F3E"/>
-
-  <!-- Большая планета -->
-  <circle cx="100" cy="100" r="50" fill="url(#planetGradient)" stroke="#A78BFA" stroke-width="2"/>
-  <defs>
-    <radialGradient id="planetGradient" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:1"/>
-      <stop offset="50%" style="stop-color:#60A5FA;stop-opacity:0.8"/>
-      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1"/>
-    </radialGradient>
-  </defs>
-
-  <!-- Кольца -->
-  <ellipse cx="100" cy="100" rx="70" ry="20" fill="none" stroke="#D8B4FE" stroke-width="6" transform="rotate(45 100 100)"/>
-  <ellipse cx="100" cy="100" rx="70" ry="20" fill="none" stroke="#A78BFA" stroke-width="4" transform="rotate(45 100 100)"/>
-
-  <!-- Маленькие спутники -->
-  <circle cx="50" cy="50" r="10" fill="url(#moonGradient1)" stroke="#A78BFA" stroke-width="1"/>
-  <circle cx="150" cy="140" r="8" fill="url(#moonGradient2)" stroke="#A78BFA" stroke-width="1"/>
-  <defs>
-    <radialGradient id="moonGradient1" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#60A5FA;stop-opacity:0.7"/>
-    </radialGradient>
-    <radialGradient id="moonGradient2" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:1"/>
-      <stop offset="100%" style="stop-color:#60A5FA;stop-opacity:0.7"/>
-    </radialGradient>
-  </defs>
-
-  <!-- Звезды -->
-  <polygon points="30,150 32,156 38,156 32,160 34,166 30,162 26,166 28,160 22,156 28,156" fill="#F9A8D4"/>
-  <polygon points="160,30 162,36 168,36 162,40 164,46 160,42 156,46 158,40 152,36 158,36" fill="#F9A8D4"/>
-  <polygon points="80,20 82,26 88,26 82,30 84,36 80,32 76,36 78,30 72,26 78,26" fill="#F9A8D4"/>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" r="80" stroke="#00ffff" stroke-width="4" fill="black"/>
+  <circle cx="70" cy="80" r="10" fill="#ff00ff"/>
+  <circle cx="130" cy="80" r="10" fill="#ff00ff"/>
+  <path d="M 60 140 Q 100 180 140 140" stroke="#00ffff" stroke-width="4" fill="none"/>
+  <rect x="80" y="120" width="40" height="10" fill="#ff00ff"/>
 </svg>
