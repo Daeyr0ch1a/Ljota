@@ -9,7 +9,7 @@ class User(Base):
     __table_args__ = {'schema': 'public'}
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(16), unique=True, index=True, nullable=False)
+    name = Column(String(16), unique=False, index=True, nullable=True)  # Сделано nullable
     email = Column(String(254), unique=True, index=True, nullable=False)
     data_users = Column(JSONB, nullable=False)
     password = Column(String(255), nullable=False)

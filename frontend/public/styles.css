@@ -202,6 +202,54 @@ header h1 {
     transform: scale(1.05);
     box-shadow: 0 0 12px #A78BFA;
 }
+#registerModal .modal-content {
+    background: linear-gradient(to bottom right, #60A5FA, #A78BFA);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    color: #1A1F3E;
+    box-shadow: 0 0 20px #F9A8D4;
+    position: relative;
+    max-width: 400px;
+    width: 90%;
+}
+
+#registerForm input,
+#registerForm select {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 10px auto;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1A1F3E;
+    box-shadow: 0 0 5px #A78BFA;
+    font-size: 1em;
+}
+
+#registerForm input:focus,
+#registerForm select:focus {
+    outline: none;
+    box-shadow: 0 0 10px #60A5FA;
+}
+
+#registerForm button {
+    margin: 10px;
+    padding: 10px 20px;
+    background: linear-gradient(45deg, #A78BFA, #60A5FA);
+    color: #1A1F3E;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+#registerForm button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px #A78BFA;
+}
+
 
 /* Скрытые элементы */
 .hidden {
