@@ -3,9 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from psycopg2 import IntegrityError
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from backend.database.db import get_db
+from backend.database.base import get_db
 import bcrypt
 from datetime import datetime
+
 
 # Создаем объект роутера
 api_router = APIRouter()
