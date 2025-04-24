@@ -112,6 +112,6 @@ async def register(user: UserIn, db: Session = Depends(get_db)):
 
     return {"success": True, "message": "Registration successful"}
 
-@api_router.get("/me")
-async def get_me(current_user: User = Depends(get_current_user)):
+@api_router.get("/profile")
+def get_profile(current_user: User = Depends(get_current_user)):
     return current_user

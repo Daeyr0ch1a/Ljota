@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class TokenData(BaseModel):
-    sub: int | None = None
+    email: Optional[str] = None

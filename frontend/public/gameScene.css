@@ -1,0 +1,243 @@
+/* Стили для игровой сцены */
+#gameScene {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1A1F3E;
+    color: #F9A8D4;
+    display: none;
+    overflow: auto;
+    z-index: 10; /* Ensure gameScene is above other content but below modals */
+}
+
+#gameScene-conteiner {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 99%;
+    width: 99%;
+}
+
+/* Шапка игровой сцены */
+#gameHeader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 98%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(26, 31, 62, 0.9), transparent);
+    padding: 10px 20px;
+    z-index: 1000;
+    border: 2px solid #A78BFA; /* Visible border */
+    border-radius: 8px; /* Rounded corners for the border */
+    box-shadow: 0 0 10px #60A5FA; /* Glow effect around the border */
+}
+
+#gameHeader h2 {
+    margin: 0;
+    font-size: 2em;
+    color: #1d192b;
+    text-shadow: 0 0 10px #60A5FA;
+    user-select: none;
+}
+
+#gameHeader nav {
+    display: flex;
+    gap: 10px;
+}
+
+#gameHeader button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(45deg, #7C3AED, #1E3A8A);
+    color: #F9A8D4;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 10px #7C3AED;
+    font-size: 1em;
+}
+
+#gameHeader button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 18px #A78BFA;
+}
+
+#accountBtn svg,
+#logoutBtn svg {
+    fill: #F9A8D4;
+    transition: fill 0.3s ease;
+}
+
+#accountBtn:hover svg,
+#logoutBtn:hover svg {
+    fill: #60A5FA;
+}
+
+#logoutBtn {
+    padding: 8px;
+}
+
+/* Контент игровой сцены */
+#gameContent {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 80px 20px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Боковая панель */
+#leftSidebar {
+    width: 200px;
+    max-height: 300px; /* Height limit */
+    background: radial-gradient(circle at center, #3B82F6, #1A1F3E);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #60A5FA;
+    margin-bottom: 20px;
+    color: #F9A8D4;
+    font-size: 1em;
+    align-self: flex-start;
+    overflow: hidden; /* Prevent canvas overflow */
+}
+
+#sidebarCanvas {
+    width: 100%;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    #leftSidebar {
+        width: 100%;
+        max-width: 200px;
+        max-height: 200px; /* Smaller height on mobile */
+    }
+}
+
+/* Нижняя ссылка */
+#bottomLink {
+    display: block;
+    width: 80%;
+    padding: 15px;
+    margin-left: 12rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, #7C3AED, #1E3A8A);
+    color: #F9A8D4;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #7C3AED;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    font-size: 1.2em;
+    margin-top: auto;
+}
+
+#bottomLink:hover {
+    box-shadow: 0 0 18px #A78BFA;
+}
+
+/* Модальное окно рекордов */
+#recordsModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Higher than gameScene and gameHeader */
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+#recordsModal .modal-content {
+    background: linear-gradient(to bottom right, #60A5FA, #A78BFA);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    color: #1A1F3E;
+    box-shadow: 0 0 20px #F9A8D4;
+    position: relative;
+    max-width: 400px;
+    width: 90%;
+    animation: scaleUp 0.3s ease-in-out;
+}
+
+#recordsModal .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5em;
+    color: #1A1F3E;
+    cursor: pointer;
+}
+
+#recordsModal .close:hover {
+    color: #F9A8D4;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.85);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    #gameHeader {
+        flex-direction: column;
+        padding: 10px;
+        border-width: 1px; /* Thinner border on mobile */
+    }
+
+    #gameHeader h2 {
+        font-size: 1.5em;
+    }
+
+    #gameHeader nav {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    #gameContent {
+        padding: 100px 10px 10px;
+    }
+
+    #leftSidebar {
+        width: 100%;
+        max-height: 200px; /* Smaller height on mobile */
+    }
+
+    #bottomLink {
+        font-size: 1em;
+        padding: 10px;
+        margin-left: 0;
+        width: 100%;
+    }
+}

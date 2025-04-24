@@ -45,29 +45,20 @@ export async function loginUser(email, password) {
 }
 
 // Получение текущего пользователя по токену
-export async function getCurrentUser() {
-    const token = localStorage.getItem("token");
+export async function getProfile(token) {
+    const response = await fetch("/profile", {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
 
-    if (!token) return null;
-
-    try {
-        const response = await fetch('/api/me', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            return await response.json();
-        } else {
-            localStorage.removeItem("token");
-            return null;
-        }
-    } catch {
-        localStorage.removeItem("token");
-        return null;
+    if (response.ok) {
+        return await response.json();
     }
+
+    return null;
 }
+
 
 // Выход из системы
 export function logoutUser() {
@@ -80,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (token) {
       
-        fetch('/me', {
+        fetch('/profile', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
