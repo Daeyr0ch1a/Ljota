@@ -1,4 +1,4 @@
-import { authenticateUser, registerUser } from './api.js';
+import { loginUser, registerUser } from './api.js';
 
 
 
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            authenticateUser(email, password).then(data => {
+            loginUser(email, password).then(data => {
                 if (data.success) {
                     showMessage('Авторизация успешна');
                     setTimeout(() => {

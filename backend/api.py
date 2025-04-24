@@ -4,8 +4,12 @@ from psycopg2 import IntegrityError
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from backend.database.base import get_db
+from backend.database.models import User
+from backend.auth.dependencies import get_current_user, SECRET_KEY, ALGORITHM, create_access_token
 import bcrypt
+from jose import JWTError, jwt
 from datetime import datetime
+
 
 
 # Создаем объект роутера
@@ -32,6 +36,13 @@ class ResponseMessage(BaseModel):
     success: bool
     message: str
 
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    success: bool
+    message: str
+
+
 # Функция для хэширования пароля
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -41,12 +52,18 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 # Маршрут для логина
-@api_router.post("/api/login", response_model=ResponseMessage)
+@api_router.post("/api/login", response_model=TokenResponse)
 async def login(user: UserLogin, db: Session = Depends(get_db)):
     from backend.database.models import User as DBUser
     db_user = db.query(DBUser).filter(DBUser.email == user.email).first()
     if db_user and verify_password(user.password, db_user.password):
-        return {"success": True, "message": "Login successful"}
+        access_token = create_access_token(data={"sub": db_user.email})
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "success": True,
+            "message": "Авторизация успешна"
+        }
     raise HTTPException(status_code=400, detail="Invalid login or password")
 
 # Маршрут для регистрации
@@ -94,3 +111,7 @@ async def register(user: UserIn, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Registration failed: possibly duplicate email")
 
     return {"success": True, "message": "Registration successful"}
+
+@api_router.get("/me")
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
