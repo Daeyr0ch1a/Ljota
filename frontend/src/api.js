@@ -13,7 +13,12 @@ export async function registerUser(payload) {
             body: JSON.stringify(payload)
         });
 
-        return await response.json();
+        const data = await response.json();
+        console.log('Ответ от /api/register:', data); // Логирование для отладки
+        if (data.success && data.access_token) {
+            localStorage.setItem("token", data.access_token);
+        }
+        return data;
     } catch (error) {
         return { success: false, error: error.message };
     }
@@ -33,7 +38,7 @@ export async function loginUser(email, password) {
         });
 
         const data = await response.json();
-
+        console.log('Ответ от /api/login:', data); // Логирование для отладки
         if (data.access_token) {
             localStorage.setItem("token", data.access_token);
         }
@@ -46,49 +51,26 @@ export async function loginUser(email, password) {
 
 // Получение текущего пользователя по токену
 export async function getProfile(token) {
-    const response = await fetch("/profile", {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    if (response.ok) {
-        return await response.json();
+    try {
+        const response = await fetch('/api/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Не удалось загрузить профиль: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Ответ от /api/profile:', data); // Логирование для отладки
+        return data;
+    } catch (error) {
+        console.error('Ошибка в getProfile:', error);
+        return null;
     }
-
-    return null;
 }
-
 
 // Выход из системы
 export function logoutUser() {
     localStorage.removeItem("token");
     location.reload();
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('token');
-
-    if (token) {
-      
-        fetch('/profile', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        .then(res => {
-            if (res.ok) return res.json();
-            else throw new Error('Unauthorized');
-        })
-        .then(user => {
-           
-            document.getElementById('intro').style.display = 'none';
-            document.getElementById('gameScene').classList.remove('hidden');
-            document.getElementById('gameScene').style.display = 'block';
-        })
-        .catch(() => {
-            
-            localStorage.removeItem('token');
-        });
-    }
-});

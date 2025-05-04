@@ -48,3 +48,12 @@ class Setting(Base):
     sound_volume = Column(Integer, default=100)
     music_volume = Column(Integer, default=100)
     control_scheme = Column(String(32), default='default')
+
+class ResultsHistory(Base):
+    __tablename__ = 'results_history'
+    __table_args__ = {'schema': 'public'}
+
+    history_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('public.users.id', ondelete="CASCADE"))
+    score = Column(Integer, nullable=False)
+    recorded_at = Column(TIMESTAMP, server_default=func.now())

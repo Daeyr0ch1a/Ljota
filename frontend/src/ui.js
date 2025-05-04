@@ -1,22 +1,90 @@
 import { loginUser, registerUser, getProfile } from './api.js';
+import { showGameScene } from './pixi.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Обработчик кнопки "Начать" — открывает модальное окно регистрации
-    const startBtn = document.getElementById('startBtn');
-    if (!startBtn) {
+// Функция для заполнения таблицы рекордов
+async function populateRecordsTable() {
+    const recordsBody = document.getElementById('recordsBody');
+    if (!recordsBody) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        recordsBody.innerHTML = '<tr><td colspan="3">Пожалуйста, войдите в систему</td></tr>';
         return;
     }
-    startBtn.addEventListener('click', function () {
-        const registerModal = document.getElementById('registerModal');
-        if (!registerModal) {
+
+    try {
+        const response = await fetch('/api/records', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
+        }
+        const records = await response.json();
+        recordsBody.innerHTML = '';
+        if (records.length === 0) {
+            recordsBody.innerHTML = '<tr><td colspan="3">Нет рекордов</td></tr>';
             return;
         }
-        registerModal.style.display = 'flex';
-        registerModal.classList.remove('hidden');
-        document.getElementById('intro').style.display = 'none';
-    });
+        records.forEach(record => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${record.place}</td>
+                <td>${record.name}</td>
+                <td>${record.score}</td>
+            `;
+            recordsBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Ошибка загрузки рекордов:', error);
+        recordsBody.innerHTML = '<tr><td colspan="3">Ошибка загрузки данных</td></tr>';
+        setTimeout(() => {
+            window.location.href = '/'; // Перенаправляем на экран входа при ошибке
+        }, 2000);
+    }
+}
 
-    // Закрытие всех модалок по клику на крестик
+document.addEventListener('DOMContentLoaded', () => {
+    // Снимаем класс hidden с body после загрузки DOM
+    document.body.classList.remove('hidden');
+
+    // Проверка токена при загрузке
+    const token = localStorage.getItem('token');
+    if (token) {
+        getProfile(token).then(userData => {
+            if (userData) {
+                showGameScene(); // Показываем gameScene, если токен валиден
+            } else {
+                localStorage.removeItem('token');
+                showMessage('Сессия истекла, войдите снова', true);
+            }
+        }).catch(err => {
+            console.error('Ошибка при проверке токена:', err);
+            localStorage.removeItem('token');
+            showMessage('Ошибка проверки сессии, войдите снова', true);
+        });
+    } else {
+        // Если токена нет, ничего не делаем, ждём нажатия "Начать"
+    }
+
+    // Обработчик кнопки "Начать"
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', function () {
+            const token = localStorage.getItem('token');
+            const registerModal = document.getElementById('registerModal');
+            if (!token && registerModal) {
+                registerModal.style.display = 'flex';
+                registerModal.classList.remove('hidden');
+                document.getElementById('intro').style.display = 'none';
+            } else if (token) {
+                showGameScene(); // Показываем gameScene, если токен есть
+            }
+        });
+    }
+
+    // Закрытие модалок по клику на крестик
     document.querySelectorAll('.close').forEach(closeBtn => {
         closeBtn.addEventListener('click', () => {
             const modalId = closeBtn.getAttribute('data-close');
@@ -24,8 +92,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modal) {
                 modal.style.display = 'none';
                 modal.classList.add('hidden');
-                if (modalId !== 'recordsModal') {
+                if (modalId === 'authModal' || modalId === 'registerModal') {
                     document.getElementById('intro').style.display = 'flex';
+                }
+                if (modalId === 'profileModal') {
+                    const gameScene = document.getElementById('gameScene');
+                    if (gameScene) {
+                        gameScene.style.display = 'block';
+                        gameScene.classList.remove('hidden');
+                    }
                 }
             }
         });
@@ -44,10 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     showMessage('Авторизация успешна');
                     setTimeout(() => {
                         document.getElementById('authModal').style.display = 'none';
-                        showGameScene();
+                        showGameScene(); // Переход к игре после авторизации
                     }, 1000);
                 } else {
-                    showMessage('Неверный логин или пароль', true);
+                    showMessage(data.message || 'Неверный логин или пароль', true);
                 }
             });
         });
@@ -60,8 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('registerModal').style.display = 'none';
             document.getElementById('registerModal').classList.add('hidden');
             const authModal = document.getElementById('authModal');
-            authModal.style.display = 'flex';
-            authModal.classList.remove('hidden');
+            if (authModal) {
+                authModal.style.display = 'flex';
+                authModal.classList.remove('hidden');
+            }
         });
     }
 
@@ -72,8 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('authModal').style.display = 'none';
             document.getElementById('authModal').classList.add('hidden');
             const registerModal = document.getElementById('registerModal');
-            registerModal.style.display = 'flex';
-            registerModal.classList.remove('hidden');
+            if (registerModal) {
+                registerModal.style.display = 'flex';
+                registerModal.classList.remove('hidden');
+            }
         });
     }
 
@@ -130,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showMessage('Регистрация успешна!');
                     setTimeout(() => {
                         document.getElementById('registerModal').style.display = 'none';
-                        showGameScene();
+                        showGameScene(); // Переход к игре после регистрации
                     }, 1000);
                 } else {
                     showMessage(data.error || 'Ошибка регистрации', true);
@@ -140,25 +219,137 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Обработчики кнопок в шапке gameScene
-    const accountBtn = document.getElementById('accountBtn');
-    if (accountBtn) {
-        accountBtn.addEventListener('click', () => {
-            showMessage('Открыт профиль');
-            // Здесь можно добавить логику отображения профиля
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    if (toggleSidebarBtn) {
+        toggleSidebarBtn.addEventListener('click', () => {
+            const sidebar = document.getElementById('leftSidebar');
+            const recordsTable = document.getElementById('recordsTable');
+            if (sidebar && recordsTable) {
+                sidebar.classList.toggle('collapsed');
+                recordsTable.classList.toggle('full-width');
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                toggleSidebarBtn.setAttribute('title', isCollapsed ? 'Развернуть меню персонажа' : 'Свернуть меню персонажа');
+                showMessage(isCollapsed ? 'Меню персонажа свёрнуто' : 'Меню персонажа развёрнуто');
+            }
         });
     }
 
-    const recordsBtn = document.getElementById('recordsBtn');
-    if (recordsBtn) {
-        recordsBtn.addEventListener('click', () => {
-            const recordsModal = document.getElementById('recordsModal');
-            if (recordsModal) {
-                recordsModal.style.display = 'flex';
-                recordsModal.classList.remove('hidden');
-                // Ensure modal is visible by forcing a reflow
-                recordsModal.offsetHeight; // Trigger reflow
-            } else {
-                console.error('Records modal not found');
+    const accountBtn = document.getElementById('accountBtn');
+    if (accountBtn) {
+        accountBtn.addEventListener('click', async () => {
+            const profileModal = document.getElementById('profileModal');
+            if (!profileModal) {
+                showMessage('Ошибка: модальное окно профиля не найдено', true);
+                return;
+            }
+
+            profileModal.style.display = 'flex';
+            profileModal.classList.remove('hidden');
+
+            profileModal.style.position = 'fixed';
+            profileModal.style.top = '0';
+            profileModal.style.left = '0';
+            profileModal.style.width = '100%';
+            profileModal.style.height = '100%';
+            profileModal.style.background = 'rgba(0, 0, 0, 0.7)';
+            profileModal.style.zIndex = '1000';
+            profileModal.style.justifyContent = 'center';
+            profileModal.style.alignItems = 'center';
+
+            const modalContent = profileModal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.background = '#1A1F3E';
+                modalContent.style.padding = '20px';
+                modalContent.style.borderRadius = '10px';
+                modalContent.style.width = '90%';
+                modalContent.style.maxWidth = '400px';
+                modalContent.style.boxShadow = '0 0 20px #60A5FA';
+                modalContent.style.color = 'white';
+            }
+
+            const closeModalOnBackground = (event) => {
+                if (event.target === profileModal) {
+                    profileModal.style.display = 'none';
+                    profileModal.classList.add('hidden');
+                    const gameScene = document.getElementById('gameScene');
+                    if (gameScene) {
+                        gameScene.style.display = 'block';
+                        gameScene.classList.remove('hidden');
+                    }
+                }
+            };
+            profileModal.addEventListener('click', closeModalOnBackground);
+
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    document.getElementById('profileInfo').innerHTML = `
+                        <p style="color: tomato;">Токен отсутствует, пожалуйста, войдите снова</p>
+                        <button id="redirectToLogin">Перейти к авторизации</button>
+                    `;
+                    document.getElementById('redirectToLogin').addEventListener('click', () => {
+                        profileModal.style.display = 'none';
+                        profileModal.classList.add('hidden');
+                        const gameScene = document.getElementById('gameScene');
+                        const intro = document.getElementById('intro');
+                        const mainHeader = document.querySelector('header:not(#gameHeader)');
+                        if (gameScene) {
+                            gameScene.style.display = 'none';
+                            gameScene.classList.add('hidden');
+                        }
+                        if (intro) intro.style.display = 'flex';
+                        if (mainHeader) mainHeader.style.display = 'block';
+                    });
+                    return;
+                }
+
+                const userData = await getProfile(token);
+                if (userData) {
+                    document.getElementById('profileName').textContent = userData.name || 'Не указано';
+                    document.getElementById('profileEmail').textContent = userData.email || 'Не указано';
+                    document.getElementById('profileGender').textContent = userData.data_users?.gender || 'Не указано';
+                    document.getElementById('profileBirthDate').textContent = userData.data_users?.birthDate || 'Не указано';
+                    showMessage('Профиль открыт');
+                } else {
+                    document.getElementById('profileInfo').innerHTML = `
+                        <p style="color: tomato;">Не удалось загрузить данные профиля</p>
+                        <button id="redirectToLogin">Перейти к авторизации</button>
+                    `;
+                    localStorage.removeItem('token');
+                    document.getElementById('redirectToLogin').addEventListener('click', () => {
+                        profileModal.style.display = 'none';
+                        profileModal.classList.add('hidden');
+                        const gameScene = document.getElementById('gameScene');
+                        const intro = document.getElementById('intro');
+                        const mainHeader = document.querySelector('header:not(#gameHeader)');
+                        if (gameScene) {
+                            gameScene.style.display = 'none';
+                            gameScene.classList.add('hidden');
+                        }
+                        if (intro) intro.style.display = 'flex';
+                        if (mainHeader) mainHeader.style.display = 'block';
+                    });
+                }
+            } catch (err) {
+                console.error('Ошибка при загрузке профиля:', err);
+                document.getElementById('profileInfo').innerHTML = `
+                    <p style="color: tomato;">Ошибка загрузки профиля: ${err.message}</p>
+                    <button id="redirectToLogin">Перейти к авторизации</button>
+                `;
+                localStorage.removeItem('token');
+                document.getElementById('redirectToLogin').addEventListener('click', () => {
+                    profileModal.style.display = 'none';
+                    profileModal.classList.add('hidden');
+                    const gameScene = document.getElementById('gameScene');
+                    const intro = document.getElementById('intro');
+                    const mainHeader = document.querySelector('header:not(#gameHeader)');
+                    if (gameScene) {
+                        gameScene.style.display = 'none';
+                        gameScene.classList.add('hidden');
+                    }
+                    if (intro) intro.style.display = 'flex';
+                    if (mainHeader) mainHeader.style.display = 'block';
+                });
             }
         });
     }
@@ -172,10 +363,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const gameScene = document.getElementById('gameScene');
                 const intro = document.getElementById('intro');
                 const mainHeader = document.querySelector('header:not(#gameHeader)');
-                gameScene.style.display = 'none';
-                gameScene.classList.add('hidden');
-                intro.style.display = 'flex';
-                mainHeader.style.display = 'block';
+                if (gameScene) {
+                    gameScene.style.display = 'none';
+                    gameScene.classList.add('hidden');
+                }
+                if (intro) intro.style.display = 'flex';
+                if (mainHeader) mainHeader.style.display = 'block';
             }, 1000);
         });
     }
@@ -186,7 +379,9 @@ document.addEventListener('DOMContentLoaded', () => {
         bottomLink.addEventListener('click', (event) => {
             event.preventDefault();
             showMessage('Переход к игре...');
-            // Здесь можно добавить логику перехода
+            setTimeout(() => {
+                window.location.href = '/games';
+            }, 1000);
         });
     }
 
@@ -201,40 +396,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function showGameScene() {
-    const intro = document.getElementById('intro');
-    const gameScene = document.getElementById('gameScene');
-    const mainHeader = document.querySelector('header:not(#gameHeader)');
-    const gameHeader = document.getElementById('gameHeader');
-    if (intro) {
-        intro.style.display = 'none';
-    }
-    if (gameScene) {
-        gameScene.classList.remove('hidden');
-        gameScene.style.display = 'block';
-    }
-    if (mainHeader) {
-        mainHeader.style.display = 'none';
-    }
-    if (gameHeader) {
-        gameHeader.style.display = 'flex';
-    }
-}
-
-window.addEventListener("DOMContentLoaded", async () => {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-        try {
-            const userData = await getProfile(token);
-            if (userData) {
-                showGameScene();
-            } else {
-                localStorage.removeItem("token");
-            }
-        } catch (err) {
-            console.error("Ошибка при проверке токена:", err);
-            localStorage.removeItem("token");
-        }
-    }
-});
+export { populateRecordsTable };

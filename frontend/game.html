@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/public/icons/main.svg" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ljota - Runner</title>
+    <link rel="stylesheet" href="/static/public/game.css">
+</head>
+<body>
+    <header>
+        <button id="backButton">← Назад</button>
+        <span id="scoreDisplay">Score: 0</span>
+    </header>
+    <div id="gameField">
+        <div class="segment" data-segment="0"></div>
+        <div class="segment" data-segment="1"></div>
+        <div class="segment" data-segment="2"></div>
+    </div>
+    <!-- Модальное окно Game Over -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2>Game Over</h2>
+            <p>Ваш счёт: <span id="finalScore">0</span></p>
+            <button id="returnToMenuBtn">Вернуться в меню</button>
+            <button id="restartGameBtn">Перезапустить</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
+    <script type="module" src="/static/src/game.js"></script>
+    <script type="module" src="/static/src/pixi.js"></script>
+</body>
+</html>
