@@ -4,14 +4,54 @@ import { getCurrentSpriteIndex } from './state.js';
 let app, characterContainer, obstacles = [], currentSegment, score, gameSpeed, localSpriteIndex = 0;
 let characterFrames = {};
 let isTexturesLoaded = false;
+let isInitializing = false;
+let isContextLost = false; // Флаг для отслеживания потери контекста
+
+// Функции для добавления и удаления слушателей событий
+function addEventListeners() {
+    window.addEventListener('keydown', handleKeydown);
+    window.addEventListener('resize', handleResize);
+}
+
+function removeEventListeners() {
+    window.removeEventListener('keydown', handleKeydown);
+    window.removeEventListener('resize', handleResize);
+}
+
+function handleKeydown(event) {
+    if ((event.key === 'ArrowUp' || event.key === 'w' || event.key === 'W') && currentSegment > 0) {
+        currentSegment--;
+        moveCharacterToSegment(currentSegment);
+    } else if ((event.key === 'ArrowDown' || event.key === 's' || event.key === 'S') && currentSegment < 2) {
+        currentSegment++;
+        moveCharacterToSegment(currentSegment);
+    }
+}
+
+function handleResize() {
+    if (app) {
+        app.renderer.resize(window.innerWidth, window.innerHeight);
+        if (characterContainer) {
+            characterContainer.x = window.innerWidth * 0.2;
+            moveCharacterToSegment(currentSegment);
+        }
+    }
+}
 
 function initializeGame() {
+    if (isInitializing || app) {
+        console.log('Инициализация уже выполняется или app существует, пропускаем');
+        return;
+    }
+    isInitializing = true;
+
     const gameField = document.getElementById('gameField');
     const segments = document.querySelectorAll('.segment');
     const scoreDisplay = document.getElementById('scoreDisplay');
 
     if (!gameField || !segments.length || !scoreDisplay) {
         console.error('Required game elements not found');
+        isInitializing = false;
         return;
     }
 
@@ -30,25 +70,42 @@ function initializeGame() {
     characterContainer.height = 100;
     characterContainer.x = window.innerWidth * 0.2;
 
-    app = new PIXI.Application({
-        view: canvas,
-        width: window.innerWidth,
-        height: window.innerHeight,
-        backgroundAlpha: 0,
-        resolution: window.devicePixelRatio || 1,
-        autoDensity: true
-    });
+    try {
+        app = new PIXI.Application({
+            view: canvas,
+            width: window.innerWidth,
+            height: window.innerHeight,
+            backgroundAlpha: 0,
+            resolution: window.devicePixelRatio || 1,
+            autoDensity: true
+        });
+        console.log('PIXI.Application успешно создан');
+    } catch (error) {
+        console.error('Ошибка создания PIXI.Application:', error);
+        isInitializing = false;
+        return;
+    }
 
     canvas.addEventListener('webglcontextlost', (event) => {
         event.preventDefault();
         console.warn('WebGL context lost in game');
-        app.ticker.stop();
-        app.stage.removeChildren();
+        isContextLost = true;
+        if (app && app.ticker) {
+            app.ticker.stop();
+        }
+        if (app && app.stage) {
+            app.stage.removeChildren();
+        }
     });
 
     canvas.addEventListener('webglcontextrestored', () => {
-        console.log('WebGL context restored in game');
-        initializeGame();
+        if (isContextLost) {
+            console.log('WebGL context restored in game');
+            isContextLost = false;
+            setTimeout(() => {
+                restartGame();
+            }, 100); // Задержка перед перезапуском
+        }
     });
 
     const characterTextures = {
@@ -81,6 +138,7 @@ function initializeGame() {
 
         if (Object.keys(characterFrames).length === 0) {
             console.error('Ни одна текстура не была предзагружена!');
+            isInitializing = false;
             return;
         }
 
@@ -88,8 +146,10 @@ function initializeGame() {
         loadCharacter();
         app.stage.addChild(characterContainer);
         moveCharacterToSegment(currentSegment);
+        isInitializing = false;
     }).catch(err => {
         console.error('Ошибка предзагрузки текстур:', err);
+        isInitializing = false;
     });
 
     function loadCharacter() {
@@ -147,7 +207,7 @@ function initializeGame() {
                 app.ticker.stop();
                 showGameOverModal(score);
                 saveScore(score).then(() => {
-                    console.log('Score saved successfully');
+                    console.log('Score saved successfully (single call)');
                 });
             }
             if (obstacle.sprite.x < -50) {
@@ -161,54 +221,7 @@ function initializeGame() {
         gameSpeed += 0.005;
     });
 
-    window.addEventListener('keydown', (event) => {
-        if ((event.key === 'ArrowUp' || event.key === 'w' || event.key === 'W') && currentSegment > 0) {
-            currentSegment--;
-            moveCharacterToSegment(currentSegment);
-        } else if ((event.key === 'ArrowDown' || event.key === 's' || event.key === 'S') && currentSegment < 2) {
-            currentSegment++;
-            moveCharacterToSegment(currentSegment);
-        }
-    });
-
-    function moveCharacterToSegment(segmentIndex) {
-        const segment = segments[segmentIndex];
-        const rect = segment.getBoundingClientRect();
-        if (characterContainer) {
-            characterContainer.y = rect.top + rect.height / 2;
-        }
-    }
-
-    window.addEventListener('resize', () => {
-        app.renderer.resize(window.innerWidth, window.innerHeight);
-        if (characterContainer) {
-            characterContainer.x = window.innerWidth * 0.2;
-            moveCharacterToSegment(currentSegment);
-        }
-    });
-
-    const returnToMenuBtn = document.getElementById('returnToMenuBtn');
-    const restartGameBtn = document.getElementById('restartGameBtn');
-
-    if (returnToMenuBtn) {
-        returnToMenuBtn.addEventListener('click', () => {
-            const modal = document.getElementById('gameOverModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-            window.location.href = '/';
-        });
-    }
-
-    if (restartGameBtn) {
-        restartGameBtn.addEventListener('click', () => {
-            const modal = document.getElementById('gameOverModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-            restartGame();
-        });
-    }
+    addEventListeners();
 }
 
 function showGameOverModal(finalScore) {
@@ -223,8 +236,45 @@ function showGameOverModal(finalScore) {
 }
 
 function restartGame() {
-    app.stage.removeChildren();
+    console.log('Начало перезапуска игры');
+
+    // Останавливаем и очищаем ticker
+    if (app && app.ticker) {
+        app.ticker.stop();
+        app.ticker.remove(() => {});
+        console.log('Ticker остановлен и очищен');
+    }
+
+    // Удаляем препятствия из сцены
+    obstacles.forEach(obstacle => {
+        if (obstacle.sprite && app && app.stage) {
+            app.stage.removeChild(obstacle.sprite);
+            obstacle.sprite.destroy();
+        }
+    });
     obstacles = [];
+    console.log('Obstacles removed:', obstacles.length);
+
+    // Удаляем слушатели событий
+    removeEventListeners();
+
+    // Очищаем characterContainer
+    if (characterContainer) {
+        characterContainer.destroy({ children: true });
+        characterContainer = null;
+        console.log('CharacterContainer destroyed');
+    }
+
+    // Уничтожаем приложение
+    if (app) {
+        app.destroy(true, { children: true, texture: true, baseTexture: true });
+        app = null;
+        console.log('PIXI.Application уничтожен');
+    }
+
+    // Сбрасываем состояние
+    characterFrames = {};
+    isTexturesLoaded = false;
     score = 0;
     gameSpeed = 5;
     currentSegment = 1;
@@ -234,8 +284,25 @@ function restartGame() {
         scoreDisplay.textContent = `Score: ${score}`;
     }
 
-    characterContainer = null;
-    initializeGame();
+    const canvas = document.getElementById('characterCanvas');
+    if (canvas) {
+        canvas.remove();
+        console.log('Canvas удалён');
+    }
+
+    // Запускаем новую инициализацию с задержкой
+    setTimeout(() => {
+        initializeGame();
+    }, 100);
+}
+
+function moveCharacterToSegment(segmentIndex) {
+    const segment = document.querySelectorAll('.segment')[segmentIndex];
+    const rect = segment.getBoundingClientRect();
+    if (characterContainer) {
+        characterContainer.y = rect.top + rect.height / 2;
+        console.log(`Перемещение персонажа в сегмент ${segmentIndex}, y=${characterContainer.y}`);
+    }
 }
 
 async function saveScore(score) {
@@ -251,7 +318,7 @@ async function saveScore(score) {
             body: JSON.stringify({ score, level_reached: 1 })
         });
         if (!response.ok) throw new Error('Failed to save score');
-        console.log('Score saved successfully');
+        console.log('Score saved successfully (single call)');
     } catch (error) {
         console.error('Error saving score:', error);
     }
@@ -278,6 +345,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
         console.error('Back button not found');
+    }
+
+    const returnToMenuBtn = document.getElementById('returnToMenuBtn');
+    const restartGameBtn = document.getElementById('restartGameBtn');
+
+    if (returnToMenuBtn) {
+        returnToMenuBtn.addEventListener('click', () => {
+            const modal = document.getElementById('gameOverModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            window.location.href = '/';
+        });
+    }
+
+    if (restartGameBtn) {
+        restartGameBtn.addEventListener('click', () => {
+            const modal = document.getElementById('gameOverModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            restartGame();
+        });
     }
 
     getProfile(token).then(userData => {
