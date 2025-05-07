@@ -5,7 +5,109 @@ let app, characterContainer, obstacles = [], currentSegment, score, gameSpeed, l
 let characterFrames = {};
 let isTexturesLoaded = false;
 let isInitializing = false;
-let isContextLost = false; // Флаг для отслеживания потери контекста
+let isContextLost = false;
+let isInvulnerable = false; // Флаг неуязвимости
+let invulnerabilityTimeout; // Таймер неуязвимости
+let dashDelayTimeout; // Таймер задержки перед следующим рывком
+let hurtFrames = {}; // Кадры для анимации рывка
+
+// Функция загрузки персонажа (вынесена наружу)
+function loadCharacter() {
+    console.log(`Загрузка персонажа с localSpriteIndex: ${localSpriteIndex}`);
+    const frames = characterFrames[localSpriteIndex];
+    if (!frames) {
+        console.error(`Кадры для персонажа с индексом ${localSpriteIndex} не найдены`);
+        return;
+    }
+
+    if (characterContainer && characterContainer.children.length > 0) {
+        characterContainer.removeChildren();
+    }
+
+    const characterSprite = new PIXI.AnimatedSprite(frames);
+    characterSprite.animationSpeed = 0.2;
+    characterSprite.play();
+    characterSprite.anchor.set(0.5);
+
+    // Фиксированные размеры: 130 пикселей в ширину, 150 пикселей в высоту
+    const frameWidth = frames[0].width;
+    const frameHeight = frames[0].height;
+    const targetWidth = 130;
+    const targetHeight = 150;
+    const scaleX = targetWidth / frameWidth;
+    const scaleY = targetHeight / frameHeight;
+    characterSprite.scale.set(scaleX, scaleY);
+    console.log(`Масштаб персонажа: scaleX=${scaleX}, scaleY=${scaleY}, итоговая ширина=${targetWidth}, итоговая высота=${targetHeight}`);
+
+    if (characterContainer) {
+        characterContainer.addChild(characterSprite);
+        characterSprite.x = characterContainer.width / 2;
+        characterSprite.y = characterContainer.height / 2;
+        console.log(`Персонаж с индексом ${localSpriteIndex} успешно загружен`);
+    }
+}
+
+// Функция рывка (вынесена наружу)
+function triggerDash() {
+    if (isInvulnerable || dashDelayTimeout) return;
+
+    console.log('Triggering dash!');
+    isInvulnerable = true;
+
+    // Сохраняем начальные координаты
+    const initialX = characterContainer.x;
+
+    // Переключаем на анимацию рывка
+    if (characterContainer && characterContainer.children.length > 0) {
+        characterContainer.removeChildren();
+    }
+
+    const dashSprite = new PIXI.AnimatedSprite(hurtFrames[localSpriteIndex]);
+    if (!dashSprite) {
+        console.error('Dash sprite not created');
+        return;
+    }
+    dashSprite.animationSpeed = 0.5; // Ускоряем анимацию
+    dashSprite.play();
+    dashSprite.anchor.set(0.5);
+
+    // Фиксированные размеры: 130 пикселей в ширину, 150 пикселей в высоту
+    const frameWidth = hurtFrames[localSpriteIndex][0].width;
+    const frameHeight = hurtFrames[localSpriteIndex][0].height;
+    const targetWidth = 130;
+    const targetHeight = 150;
+    const scaleX = targetWidth / frameWidth;
+    const scaleY = targetHeight / frameHeight;
+    dashSprite.scale.set(scaleX, scaleY);
+    console.log(`Масштаб рывка: scaleX=${scaleX}, scaleY=${scaleY}, итоговая ширина=${targetWidth}, итоговая высота=${targetHeight}`);
+
+    if (characterContainer) {
+        characterContainer.addChild(dashSprite);
+    }
+
+    // Переносим персонажа вправо на 50 пикселей
+    characterContainer.x += 50;
+
+    // Ограничение, чтобы не выйти за правую границу
+    const maxX = window.innerWidth - (targetWidth / 2); // Учитываем половину ширины персонажа
+    if (characterContainer.x > maxX) {
+        characterContainer.x = maxX;
+    }
+
+    // Неуязвимость на 0.5 секунды
+    invulnerabilityTimeout = setTimeout(() => {
+        isInvulnerable = false;
+        characterContainer.x = Math.min(initialX + 50, maxX); // Фиксируем новую позицию с учетом ограничений
+        loadCharacter(); // Возвращаем анимацию бега
+        console.log('Dash ended, returning to run animation');
+    }, 500); // 0.5 секунды
+
+    // Задержка перед следующим рывком 0.2 секунды
+    dashDelayTimeout = setTimeout(() => {
+        dashDelayTimeout = null;
+        console.log('Dash delay ended');
+    }, 200); // 0.2 секунды
+}
 
 // Функции для добавления и удаления слушателей событий
 function addEventListeners() {
@@ -25,6 +127,8 @@ function handleKeydown(event) {
     } else if ((event.key === 'ArrowDown' || event.key === 's' || event.key === 'S') && currentSegment < 2) {
         currentSegment++;
         moveCharacterToSegment(currentSegment);
+    } else if (event.key === ' ' && !isInvulnerable && !dashDelayTimeout) {
+        triggerDash();
     }
 }
 
@@ -32,8 +136,9 @@ function handleResize() {
     if (app) {
         app.renderer.resize(window.innerWidth, window.innerHeight);
         if (characterContainer) {
-            characterContainer.x = window.innerWidth * 0.2;
+            characterContainer.x = window.innerWidth * 0.2; // Сброс позиции при изменении размера
             moveCharacterToSegment(currentSegment);
+            loadCharacter(); // Перезагрузка с новыми размерами
         }
     }
 }
@@ -66,8 +171,8 @@ function initializeGame() {
     document.body.appendChild(canvas);
 
     characterContainer = new PIXI.Container();
-    characterContainer.width = 100;
-    characterContainer.height = 100;
+    characterContainer.width = 130; // Ширина 130 пикселей
+    characterContainer.height = 150; // Высота 150 пикселей
     characterContainer.x = window.innerWidth * 0.2;
 
     try {
@@ -104,7 +209,7 @@ function initializeGame() {
             isContextLost = false;
             setTimeout(() => {
                 restartGame();
-            }, 100); // Задержка перед перезапуском
+            }, 100);
         }
     });
 
@@ -114,7 +219,13 @@ function initializeGame() {
         2: '/static/public/assets/characters/punk/Punk_run.png'
     };
 
-    PIXI.Assets.load(Object.values(characterTextures)).then((textures) => {
+    const hurtTextures = {
+        0: '/static/public/assets/characters/biker/Biker_hurt.png',
+        1: '/static/public/assets/characters/cyborg/Cyborg_hurt.png',
+        2: '/static/public/assets/characters/punk/Punk_hurt.png'
+    };
+
+    PIXI.Assets.load([...Object.values(characterTextures), ...Object.values(hurtTextures)]).then((textures) => {
         console.log('Все текстуры для игры загружены:', textures);
         Object.keys(characterTextures).forEach(index => {
             const texture = textures[characterTextures[index]];
@@ -136,8 +247,28 @@ function initializeGame() {
             console.log(`Текстуры для персонажа ${index} предзагружены: frameWidth=${frameWidth}, frameHeight=${frameHeight}`);
         });
 
-        if (Object.keys(characterFrames).length === 0) {
-            console.error('Ни одна текстура не была предзагружена!');
+        Object.keys(hurtTextures).forEach(index => {
+            const texture = textures[hurtTextures[index]];
+            if (!texture) {
+                console.error(`Текстура для рывка с индексом ${index} не загружена: ${hurtTextures[index]}`);
+                return;
+            }
+
+            const frameWidth = texture.width / 2; // Два кадра
+            const frameHeight = texture.height;
+
+            const frames = [];
+            for (let i = 0; i < 2; i++) {
+                const frame = new PIXI.Rectangle(i * frameWidth, 0, frameWidth, frameHeight);
+                const frameTexture = new PIXI.Texture(texture.baseTexture, frame);
+                frames.push(frameTexture);
+            }
+            hurtFrames[index] = frames;
+            console.log(`Кадры для рывка персонажа ${index} предзагружены: frameWidth=${frameWidth}, frameHeight=${frameHeight}`);
+        });
+
+        if (Object.keys(characterFrames).length === 0 || Object.keys(hurtFrames).length === 0) {
+            console.error('Текстуры для персонажа или рывка не были предзагружены!');
             isInitializing = false;
             return;
         }
@@ -151,35 +282,6 @@ function initializeGame() {
         console.error('Ошибка предзагрузки текстур:', err);
         isInitializing = false;
     });
-
-    function loadCharacter() {
-        console.log(`Загрузка персонажа с localSpriteIndex: ${localSpriteIndex}`);
-        const frames = characterFrames[localSpriteIndex];
-        if (!frames) {
-            console.error(`Кадры для персонажа с индексом ${localSpriteIndex} не найдены`);
-            return;
-        }
-
-        if (characterContainer.children.length > 0) {
-            characterContainer.removeChildren();
-        }
-
-        const characterSprite = new PIXI.AnimatedSprite(frames);
-        characterSprite.animationSpeed = 0.2;
-        characterSprite.play();
-        characterSprite.anchor.set(0.5);
-
-        const frameHeight = frames[0].height;
-        const targetHeight = 80;
-        const scaleFactor = targetHeight / frameHeight;
-        characterSprite.scale.set(scaleFactor);
-        console.log(`Масштаб персонажа: scaleFactor=${scaleFactor}, итоговая высота=${frameHeight * scaleFactor}, итоговая ширина=${frames[0].width * scaleFactor}`);
-
-        characterContainer.addChild(characterSprite);
-        characterSprite.x = characterContainer.width / 2;
-        characterSprite.y = characterContainer.height / 2;
-        console.log(`Персонаж с индексом ${localSpriteIndex} успешно загружен`);
-    }
 
     app.ticker.add(() => {
         if (Math.random() < 0.02) {
@@ -201,6 +303,7 @@ function initializeGame() {
         obstacles.forEach((obstacle, index) => {
             obstacle.sprite.x -= gameSpeed;
             if (
+                !isInvulnerable &&
                 Math.abs(obstacle.sprite.x - characterContainer.x) < 50 &&
                 obstacle.segment === currentSegment
             ) {
@@ -238,14 +341,15 @@ function showGameOverModal(finalScore) {
 function restartGame() {
     console.log('Начало перезапуска игры');
 
-    // Останавливаем и очищаем ticker
+    if (invulnerabilityTimeout) clearTimeout(invulnerabilityTimeout);
+    if (dashDelayTimeout) clearTimeout(dashDelayTimeout);
+
     if (app && app.ticker) {
         app.ticker.stop();
         app.ticker.remove(() => {});
         console.log('Ticker остановлен и очищен');
     }
 
-    // Удаляем препятствия из сцены
     obstacles.forEach(obstacle => {
         if (obstacle.sprite && app && app.stage) {
             app.stage.removeChild(obstacle.sprite);
@@ -255,29 +359,27 @@ function restartGame() {
     obstacles = [];
     console.log('Obstacles removed:', obstacles.length);
 
-    // Удаляем слушатели событий
     removeEventListeners();
 
-    // Очищаем characterContainer
     if (characterContainer) {
         characterContainer.destroy({ children: true });
         characterContainer = null;
         console.log('CharacterContainer destroyed');
     }
 
-    // Уничтожаем приложение
     if (app) {
         app.destroy(true, { children: true, texture: true, baseTexture: true });
         app = null;
         console.log('PIXI.Application уничтожен');
     }
 
-    // Сбрасываем состояние
     characterFrames = {};
+    hurtFrames = {};
     isTexturesLoaded = false;
     score = 0;
     gameSpeed = 5;
     currentSegment = 1;
+    isInvulnerable = false;
 
     const scoreDisplay = document.getElementById('scoreDisplay');
     if (scoreDisplay) {
@@ -290,7 +392,6 @@ function restartGame() {
         console.log('Canvas удалён');
     }
 
-    // Запускаем новую инициализацию с задержкой
     setTimeout(() => {
         initializeGame();
     }, 100);
@@ -300,7 +401,10 @@ function moveCharacterToSegment(segmentIndex) {
     const segment = document.querySelectorAll('.segment')[segmentIndex];
     const rect = segment.getBoundingClientRect();
     if (characterContainer) {
-        characterContainer.y = rect.top + rect.height / 2;
+        const segmentHeight = window.innerHeight * 0.333; // 33.3% высоты окна
+        const characterHeight = 150; // Высота персонажа
+        const offsetY = (segmentHeight - characterHeight) / 2; // Центрируем персонажа в строке
+        characterContainer.y = rect.top + offsetY + (characterHeight / 2); // Учитываем якорь 0.5
         console.log(`Перемещение персонажа в сегмент ${segmentIndex}, y=${characterContainer.y}`);
     }
 }
