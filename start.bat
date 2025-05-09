@@ -17,4 +17,4 @@ pip install -r backend\requirements.txt
 
 REM 4️⃣ Запускаем FastAPI-приложение
 echo 🚀 Запускаем FastAPI-приложение...
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+venv\Scripts\python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
