@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/public/icons/main.svg" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ljota — Раннер</title>
+    <link rel="preload" href="/static/public/main.css" as="style">
+    <link rel="preload" href="/static/public/gameScene.css" as="style">
+    <link rel="stylesheet" href="/static/public/main.css">
+    <link rel="stylesheet" href="/static/public/gameScene.css">
+</head>
+<body class="hidden">
+    <header class="logo"><h1>Ljota</h1></header>
+
+    <div id="intro">
+        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="25" fill="url(#skullGradient)" stroke="#A78BFA" stroke-width="2"/>
+            <defs>
+                <radialGradient id="skullGradient" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" style="stop-color:#A78BFA;stop-opacity:1"/>
+                    <stop offset="50%" style="stop-color:#60A5FA;stop-opacity:0.8"/>
+                    <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1"/>
+                </radialGradient>
+            </defs>
+            <circle cx="40" cy="45" r="5" fill="black" stroke="#ff00ff" stroke-width="2"/>
+            <circle cx="60" cy="45" r="5" fill="black" stroke="#ff00ff" stroke-width="2"/>
+            <path d="M 35 60 Q 50 75, 65 60" stroke="#00ffff" stroke-width="2" fill="none"/>
+        </svg>
+        <button id="startBtn">Начать</button>
+    </div>
+
+    <!-- Модальное окно авторизации -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close" data-close="authModal">×</span>
+            <h2>Авторизация</h2>
+            <form id="authForm">
+                <input type="text" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Пароль" required>
+                <button type="submit">Войти</button>
+                <button type="button" id="openRegisterModal">Нет аккаунта?</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно регистрации -->
+    <div id="registerModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" data-close="registerModal">×</span>
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <input type="text" id="regName" name="name" placeholder="Имя" required />
+                <input type="text" id="regEmail" placeholder="Email" required>
+                <input type="password" id="regPassword" placeholder="Пароль" required>
+                <input type="date" id="birthDate" name="birthDate" required />
+                <select id="gender" required>
+                    <option value="">Выберите пол</option>
+                    <option value="male">Мужской</option>
+                    <option value="female">Женский</option>
+                    <option value="other">Другое</option>
+                </select>
+                <button type="submit">Зарегистрироваться</button>
+                <button type="button" id="openAuthModal">Уже есть аккаунт?</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="gameScene" class="hidden">
+        <div id="gameScene-conteiner">
+            <header id="gameHeader">
+                <h2>Ljota Game</h2>
+                <nav>
+                    <button id="accountBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="#A78BFA"/>
+                        </svg>
+                        Аккаунт
+                    </button>
+                    <button id="logoutBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12L17 7ZM4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z" fill="#A78BFA"/>
+                        </svg>
+                    </button>
+                </nav>
+            </header>
+            <div id="gameContent">
+                <div id="leftSidebar">
+                    <canvas id="sidebarCanvas"></canvas>
+                    <button id="switchSpriteBtn">Следующий персонаж</button>
+                </div>
+                <!-- Таблица рекордов -->
+                <div id="recordsTable">
+                    <h2>Рекорды</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Место</th>
+                                <th>Имя</th>
+                                <th>Очки</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsBody">
+                            <!-- Данные будут добавлены через JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <a id="bottomLink" href="/games">Перейти к игре</a>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Профиль</h2>
+            <div id="profileInfo">
+                <p><strong>Имя:</strong> <span id="profileName">Загрузка...</span></p>
+                <p><strong>Email:</strong> <span id="profileEmail">Загрузка...</span></p>
+                <p><strong>Пол:</strong> <span id="profileGender">Загрузка...</span></p>
+                <p><strong>Дата рождения:</strong> <span id="profileBirthDate">Загрузка...</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="indexTitleElement" style="display: none;"></div>
+    <div id="messageBox" style="display: none;"></div>
+
+
+    <script type="module" src="/static/src/api.js"></script>
+    <script type="module" src="/static/src/ui.js"></script>
+    <script type="module" src="/static/src/pixi.js"></script>
+    
+</body>
+</html>

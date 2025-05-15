@@ -1,0 +1,415 @@
+/* Стили для предотвращения FOUC */
+body.hidden {
+    visibility: hidden;
+}
+
+body {
+    visibility: visible;
+}
+
+/* Остальные стили остаются без изменений */
+#gameScene {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1A1F3E;
+    color: #F9A8D4;
+    display: none;
+    overflow: auto;
+    z-index: 10; /* Ensure gameScene is above other content but below modals */
+}
+
+#gameScene-conteiner {
+    display: flex;
+    flex-direction: column;
+    min-height: 99%;
+    width: 99%;
+}
+
+/* Шапка игровой сцены */
+#gameHeader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 98%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(26, 31, 62, 0.9), transparent);
+    padding: 10px 20px;
+    z-index: 1000;
+    border: 2px solid #A78BFA; /* Visible border */
+    border-radius: 8px; /* Rounded corners for the border */
+    box-shadow: 0 0 10px #60A5FA; /* Glow effect around the border */
+}
+
+#gameHeader h2 {
+    margin: 0;
+    font-size: 2em;
+    color: #1d192b;
+    text-shadow: 0 0 10px #60A5FA;
+    user-select: none;
+}
+
+#gameHeader nav {
+    display: flex;
+    gap: 10px;
+}
+
+#gameHeader button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(45deg, #7C3AED, #1E3A8A);
+    color: #F9A8D4;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 10px #7C3AED;
+    font-size: 1em;
+}
+
+#gameHeader button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 18px #A78BFA;
+}
+
+#accountBtn svg,
+#logoutBtn svg,
+#toggleSidebarBtn svg {
+    fill: #F9A8D4;
+    transition: fill 0.3s ease;
+}
+
+#accountBtn:hover svg,
+#logoutBtn:hover svg,
+#toggleSidebarBtn:hover svg {
+    fill: #60A5FA;
+}
+
+#logoutBtn,
+#toggleSidebarBtn {
+    padding: 8px;
+}
+
+/* Контент игровой сцены */
+#gameContent {
+    display: grid;
+    grid-template-columns: 200px 1fr; /* Два столбца: фиксированная ширина для sidebar, остальное для таблицы */
+    grid-template-rows: auto 1fr; /* Теперь только две строки: пустая (для header), контент */
+    gap: 20px;
+    padding: 80px 20px 20px; /* Оставляем отступ сверху для gameHeader */
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    flex-grow: 1; /* Занимает всё доступное пространство */
+    transition: grid-template-columns 0.3s ease; /* Плавное изменение столбцов при сворачивании */
+}
+
+/* Когда sidebar свёрнут, уменьшаем его столбец */
+#gameContent.collapsed {
+    grid-template-columns: 0 1fr; /* Первый столбец становится 0, таблица занимает всё */
+}
+
+/* Боковая панель (меню персонажа) */
+#leftSidebar {
+    grid-column: 1;
+    grid-row: 2;
+    width: 200px;
+    max-height: 300px; /* Height limit */
+    background: radial-gradient(circle at center, #3B82F6, #1A1F3E);
+    padding: 0; /* Убираем padding */
+    border-radius: 8px;
+    box-shadow: 0 0 15px #60A5FA;
+    color: #F9A8D4;
+    font-size: 1em;
+    overflow: hidden; /* Prevent canvas overflow */
+    transition: width 0.3s ease; /* Плавная анимация сворачивания */
+    position: relative; /* Для псевдоэлемента */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Правая граница для отделения */
+#leftSidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #A78BFA, #60A5FA);
+    box-shadow: 0 0 12px #60A5FA;
+}
+
+/* Состояние свёрнутого sidebar */
+#leftSidebar.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* При сворачивании скрываем разделитель */
+#leftSidebar.collapsed::after {
+    display: none;
+}
+
+#sidebarCanvas {
+    width: 100%;
+    height: 100%;
+    max-height: 257px; /* Ограничиваем высоту канваса, чтобы оставить место для кнопки */
+}
+
+/* Стили для кнопки переключения спрайтов */
+#switchSpriteBtn {
+    margin: 10px 0; /* Добавляем симметричные отступы */
+    padding: 8px 16px;
+    background: linear-gradient(45deg, #7C3AED, #1E3A8A);
+    color: #F9A8D4;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 10px #7C3AED;
+    font-size: 0.9em;
+}
+
+#switchSpriteBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 18px #A78BFA;
+}
+
+/* Таблица рекордов */
+#recordsTable {
+    grid-column: 2;
+    grid-row: 2;
+    background: linear-gradient(to bottom right, #60A5FA, #A78BFA);
+    padding: 20px;
+    border-radius: 10px;
+    color: #1A1F3E;
+    box-shadow: 0 0 20px #F9A8D4;
+    width: 100%;
+    position: relative; /* Для псевдоэлемента */
+}
+
+/* Нижняя граница для отделения */
+#recordsTable::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to right, #A78BFA, #60A5FA);
+    box-shadow: 0 0 12px #60A5FA;
+}
+
+#recordsTable h2 {
+    margin: 0 0 10px 0;
+    text-align: center;
+    font-size: 1.5em;
+}
+
+#recordsTable table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#recordsTable th,
+#recordsTable td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #F9A8D4;
+}
+
+#recordsTable th {
+    background: #3B82F6;
+    color: #F9A8D4;
+    font-weight: bold;
+}
+
+#recordsTable td {
+    color: #1A1F3E;
+}
+
+#recordsTable tr:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Нижняя ссылка (кнопка начала игры) */
+#bottomLink {
+    display: block;
+    width: 90%; /* Делаем шире */
+    padding: 20px; /* Увеличиваем внутренние отступы */
+    margin: 30px auto 2rem auto; /* Увеличиваем внешние отступы */
+    background: linear-gradient(45deg, #7C3AED, #1E3A8A);
+    color: #F9A8D4;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 12px; /* Более округлые углы */
+    box-shadow: 0 0 15px #7C3AED, 0 4px 20px rgba(0, 0, 0, 0.5); /* Усиливаем тень */
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    font-size: 1.3em; /* Увеличиваем шрифт */
+    position: relative; /* Для псевдоэлемента */
+    z-index: 1; /* Убедимся, что кнопка выше фона */
+}
+
+/* Добавляем фоновую обёртку для эффекта отдельности */
+#bottomLink::before {
+    content: '';
+    position: absolute;
+    top: -20px; /* Увеличиваем отступ сверху */
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: radial-gradient(circle at center, rgba(96, 165, 250, 0.2), transparent);
+    border: 2px solid #A78BFA; /* Добавляем границу вокруг обёртки */
+    border-radius: 16px; /* Скругляем углы обёртки */
+    box-shadow: 0 0 20px #60A5FA; /* Добавляем свечение */
+    z-index: -1; /* Помещаем обёртку под кнопку */
+}
+
+#bottomLink:hover {
+    transform: scale(1.05); /* Эффект увеличения при наведении */
+    box-shadow: 0 0 25px #A78BFA, 0 6px 25px rgba(0, 0, 0, 0.6); /* Усиливаем тень при наведении */
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.85);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    #gameHeader {
+        flex-direction: column;
+        padding: 10px;
+        border-width: 1px; /* Thinner border on mobile */
+    }
+
+    #gameHeader h2 {
+        font-size: 1.5em;
+    }
+
+    #gameHeader nav {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    #gameContent {
+        grid-template-columns: 1fr; /* Один столбец на мобильных */
+        grid-template-rows: auto auto; /* Только две строки */
+        padding: 100px 10px 10px;
+    }
+
+    #gameContent.collapsed {
+        grid-template-columns: 1fr; /* Остаётся один столбец */
+    }
+
+    #leftSidebar {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        max-width: 200px;
+        max-height: 200px; /* Smaller height on mobile */
+    }
+
+    #leftSidebar.collapsed {
+        width: 0;
+        max-width: 0;
+    }
+
+    /* На мобильных скрываем правую границу, так как элементы в столбик */
+    #leftSidebar::after {
+        display: none;
+    }
+
+    #switchSpriteBtn {
+        font-size: 0.8em;
+        padding: 6px 12px;
+    }
+
+    #sidebarCanvas {
+        max-height: 157px; /* Уменьшаем высоту канваса на мобильных устройствах */
+    }
+
+    #recordsTable {
+        grid-column: 1;
+        grid-row: 3;
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    /* Сохраняем нижнюю границу таблицы */
+    #recordsTable::after {
+        bottom: -8px;
+        height: 3px;
+        box-shadow: 0 0 8px #60A5FA;
+    }
+
+    #bottomLink {
+        font-size: 1em;
+        padding: 15px;
+        width: 100%;
+        margin: 20px auto 1rem auto; /* Уменьшаем отступы для мобильных */
+        box-shadow: 0 0 10px #7C3AED, 0 3px 15px rgba(0, 0, 0, 0.5); /* Уменьшаем тень */
+    }
+
+    /* Уменьшаем обёртку для мобильных */
+    #bottomLink::before {
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
+        border-radius: 12px;
+        box-shadow: 0 0 15px #60A5FA;
+    }
+
+    #bottomLink:hover {
+        box-shadow: 0 0 20px #A78BFA, 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    #recordsTable h2 {
+        font-size: 1.2em;
+    }
+
+    #recordsTable th,
+    #recordsTable td {
+        padding: 8px;
+        font-size: 0.9em;
+    }
+}
+
+.modal-content .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #A78BFA;
+}
+
+.modal-content .close:hover {
+    color: #60A5FA;
+}
