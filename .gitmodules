@@ -1,0 +1,3 @@
+[submodule "backend/pyenv-project"]
+	path = backend/pyenv-project
+	url = https://github.com/pyenv/pyenv
