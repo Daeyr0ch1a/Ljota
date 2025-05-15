@@ -4,7 +4,7 @@ import sys
 
 
 # Устанавливаем локальный `PYENV_ROOT`
-PYENV_ROOT = os.path.join(os.getcwd(), r"backend\.pyenv-project")
+PYENV_ROOT = os.path.join(os.getcwd(), r"backend\pyenv-project")
 PYENV_BIN = os.path.join(PYENV_ROOT, "pyenv-win", "bin", "pyenv.bat")
 
 os.environ["PYENV"] = PYENV_ROOT
